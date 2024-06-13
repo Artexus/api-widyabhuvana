@@ -45,6 +45,49 @@ definitions:
       name:
         type: string
     type: object
+  constant.TaskType:
+    enum:
+    - LEARNING
+    - MULTIPLE_CHOICE
+    type: string
+    x-enum-varnames:
+    - Learning
+    - MultipleChoice
+  src_entity_v1_http_task.QnAPayload:
+    properties:
+      choices:
+        items:
+          type: string
+        type: array
+      question:
+        type: string
+    type: object
+  task.GetResponse:
+    properties:
+      id:
+        type: string
+      point:
+        type: integer
+      qnas:
+        items:
+          $ref: '#/definitions/src_entity_v1_http_task.QnAPayload'
+        type: array
+      text:
+        type: string
+      type:
+        $ref: '#/definitions/constant.TaskType'
+      video_url:
+        type: string
+    type: object
+  task.SubmitRequest:
+    properties:
+      answers:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+    type: object
   user.GetResponse:
     properties:
       email:
@@ -97,7 +140,38 @@ paths:
             type: string
       summary: Get Category List
       tags:
-      - User
+      - Category
+  /v1/categories/progress:
+    get:
+      description: Get User's progress list
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/category.GetResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get User's progress list
+      tags:
+      - Category
   /v1/login:
     post:
       description: Login User
@@ -160,6 +234,112 @@ paths:
       summary: Register User
       tags:
       - Auth
+  /v1/sub-categories:
+    get:
+      description: Get category list
+      parameters:
+      - description: Category ID
+        in: query
+        name: category_id
+        required: true
+        type: string
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/category.GetResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Sub Category List
+      tags:
+      - User
+  /v1/tasks:
+    get:
+      description: Get tasks
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/task.GetResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Tasks
+      tags:
+      - User
+    post:
+      description: |-
+        Submit tasks
+        Please send the answer accordingly
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/task.SubmitRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Submit Tasks
+      tags:
+      - User
   /v1/users:
     get:
       description: Get user detail by its bearer token

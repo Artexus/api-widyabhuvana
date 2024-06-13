@@ -8,6 +8,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type TaskType string
+
+const (
+	Learning       TaskType = "LEARNING"
+	MultipleChoice TaskType = "MULTIPLE_CHOICE"
+)
+
 var (
 	_ = godotenv.Load()
 

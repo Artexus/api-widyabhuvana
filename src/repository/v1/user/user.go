@@ -70,3 +70,10 @@ func (r Repository) Create(ctx context.Context, entity *db.User) (err error) {
 
 	return
 }
+
+func (r Repository) UpdatePoint(ctx context.Context, id string, point int) (err error) {
+	_, err = r.user().
+		Doc(id).
+		Update(ctx, []firestore.Update{{Path: "total_point", Value: firestore.Increment(point)}})
+	return
+}
