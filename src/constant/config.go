@@ -28,5 +28,7 @@ var (
 
 	PasswordMaxlength = 8
 
+	Bucket = os.Getenv("FIREBASE_BUCKET")
+
 	Error = log.New(os.Stdout, "\u001b[31mERROR: \u001b[0m", log.LstdFlags|log.Lshortfile)
 )

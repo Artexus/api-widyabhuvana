@@ -1,7 +1,11 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
+	"path/filepath"
+	"strings"
 
 	"cloud.google.com/go/firestore"
 	"github.com/Artexus/api-widyabhuvana/src/constant"
@@ -9,6 +13,8 @@ import (
 	"github.com/Artexus/api-widyabhuvana/src/repository/v1/user"
 	"github.com/Artexus/api-widyabhuvana/src/util/jwt"
 	"github.com/Artexus/api-widyabhuvana/src/util/rest"
+	"github.com/Artexus/api-widyabhuvana/src/util/storage"
+	"github.com/google/uuid"
 	"github.com/jinzhu/copier"
 
 	"github.com/gin-gonic/gin"
@@ -46,6 +52,8 @@ func (ctrl Controller) Get(ctx *gin.Context) {
 	resp := httpUser.GetResponse{}
 	copier.Copy(&resp, user)
 
+	resp.PhotoURL = fmt.Sprintf("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media", constant.Bucket, url.QueryEscape(user.PhotoURL))
+
 	rest.ResponseData(ctx, http.StatusOK, resp)
 }
 
@@ -62,33 +70,69 @@ func (ctrl Controller) Get(ctx *gin.Context) {
 func (ctrl Controller) Update(ctx *gin.Context) {
 	id, _ := jwt.ExtractIDToken(ctx.GetHeader("Authorization"))
 	req := httpUser.UpdateRequest{}
-	err := ctx.BindJSON(&req)
+	req.DateOfBirth = ctx.PostForm("dob")
+	req.Email = ctx.PostForm("email")
+	req.Name = ctx.PostForm("name")
+	err := ctx.Request.ParseMultipartForm(10 << 20)
 	if err != nil {
-		rest.ResponseOutput(ctx, http.StatusBadRequest, map[string]string{
-			"query": constant.ErrInvalid.Error(),
-		})
+		constant.Error.Println("parse multipart form ", err)
+		rest.ResponseOutput(ctx, http.StatusInternalServerError, nil)
 		return
 	}
 
 	updates := []firestore.Update{}
-	if req.DateOfBirth != nil {
+
+	file, header, err := ctx.Request.FormFile("file")
+	if err != nil && !strings.Contains(err.Error(), "no such file") {
+		constant.Error.Println("file form request ", err)
+		rest.ResponseOutput(ctx, http.StatusInternalServerError, nil)
+		return
+	}
+
+	if err == nil {
+		defer file.Close()
+
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		if ext != ".jpeg" && ext != ".jpg" {
+			rest.ResponseOutput(ctx, http.StatusBadRequest, map[string]string{
+				"file": constant.ErrInvalid.Error(),
+			})
+			return
+		}
+
+		uuid := uuid.New()
+		path := fmt.Sprintf("images/%s/%s%s", id, uuid.String(), ext)
+		err = storage.Upload(file, uuid.String(), path)
+		if err != nil {
+			constant.Error.Println("upload ", err)
+			rest.ResponseOutput(ctx, http.StatusInternalServerError, nil)
+			return
+		}
+
+		updates = append(updates, firestore.Update{
+			Path:  "photo_url",
+			Value: path,
+		})
+	}
+
+	if req.DateOfBirth != "" {
 		updates = append(updates, firestore.Update{
 			Path:  "dob",
-			Value: *req.DateOfBirth,
+			Value: req.DateOfBirth,
 		})
 	}
 
-	if req.Email != nil {
+	if req.Email != "" {
 		updates = append(updates, firestore.Update{
 			Path:  "email",
-			Value: *req.Email,
+			Value: req.Email,
 		})
 	}
 
-	if req.Name != nil {
+	if req.Name != "" {
 		updates = append(updates, firestore.Update{
 			Path:  "name",
-			Value: *req.Name,
+			Value: req.Name,
 		})
 	}
 
