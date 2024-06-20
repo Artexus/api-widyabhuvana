@@ -49,10 +49,34 @@ definitions:
     enum:
     - LEARNING
     - MULTIPLE_CHOICE
+    - ESSAY
+    - MATCHING
+    - DETECTIVE
+    - LEVEL
     type: string
     x-enum-varnames:
     - Learning
     - MultipleChoice
+    - Essay
+    - Matching
+    - Detective
+    - Level
+  src_entity_v1_http_task.Level:
+    properties:
+      qna:
+        items:
+          $ref: '#/definitions/src_entity_v1_http_task.QnaLevel'
+        type: array
+      total:
+        type: integer
+    type: object
+  src_entity_v1_http_task.LevelPayload:
+    properties:
+      level_1:
+        $ref: '#/definitions/src_entity_v1_http_task.Level'
+      level_2:
+        $ref: '#/definitions/src_entity_v1_http_task.Level'
+    type: object
   src_entity_v1_http_task.QnAPayload:
     properties:
       choices:
@@ -62,15 +86,30 @@ definitions:
       question:
         type: string
     type: object
+  src_entity_v1_http_task.QnaLevel:
+    properties:
+      description:
+        type: string
+      question:
+        type: string
+    type: object
   task.GetResponse:
     properties:
       id:
         type: string
+      levels:
+        $ref: '#/definitions/src_entity_v1_http_task.LevelPayload'
+      matches:
+        $ref: '#/definitions/task.Matches'
       point:
         type: integer
       qnas:
         items:
           $ref: '#/definitions/src_entity_v1_http_task.QnAPayload'
+        type: array
+      sub_task:
+        items:
+          type: string
         type: array
       text:
         type: string
@@ -79,13 +118,28 @@ definitions:
       video_url:
         type: string
     type: object
+  task.Matches:
+    properties:
+      choices:
+        items:
+          type: string
+        type: array
+      questions:
+        items:
+          type: string
+        type: array
+    type: object
   task.SubmitRequest:
     properties:
       answers:
         items:
-          type: string
+          items:
+            type: string
+          type: array
         type: array
       id:
+        type: string
+      sub_task_id:
         type: string
     type: object
   user.GetResponse:
@@ -270,6 +324,40 @@ paths:
       summary: Get Sub Category List
       tags:
       - User
+  /v1/sub-tasks:
+    get:
+      description: Get sub tasks
+      parameters:
+      - description: ID
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/task.GetResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get Sub Tasks
+      tags:
+      - Sub Task
   /v1/tasks:
     get:
       description: Get tasks
@@ -303,7 +391,7 @@ paths:
             type: string
       summary: Get Tasks
       tags:
-      - User
+      - Task
     post:
       description: |-
         Submit tasks
@@ -339,7 +427,7 @@ paths:
             type: string
       summary: Submit Tasks
       tags:
-      - User
+      - Task
   /v1/users:
     get:
       description: Get user detail by its bearer token
@@ -367,6 +455,34 @@ paths:
           schema:
             type: string
       summary: Get Auth User
+      tags:
+      - User
+    patch:
+      description: Update user
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.GetResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Update User
       tags:
       - User
 swagger: "2.0"

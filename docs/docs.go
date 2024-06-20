@@ -267,11 +267,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/sub-tasks": {
+            "get": {
+                "description": "Get sub tasks",
+                "tags": [
+                    "Sub Task"
+                ],
+                "summary": "Get Sub Tasks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/task.GetResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/tasks": {
             "get": {
                 "description": "Get tasks",
                 "tags": [
-                    "User"
+                    "Task"
                 ],
                 "summary": "Get Tasks",
                 "parameters": [
@@ -320,7 +371,7 @@ const docTemplate = `{
             "post": {
                 "description": "Submit tasks\nPlease send the answer accordingly",
                 "tags": [
-                    "User"
+                    "Task"
                 ],
                 "summary": "Submit Tasks",
                 "parameters": [
@@ -376,6 +427,48 @@ const docTemplate = `{
                     "User"
                 ],
                 "summary": "Get Auth User",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/user.GetResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update user",
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update User",
                 "parameters": [
                     {
                         "type": "string",
@@ -489,12 +582,45 @@ const docTemplate = `{
             "type": "string",
             "enum": [
                 "LEARNING",
-                "MULTIPLE_CHOICE"
+                "MULTIPLE_CHOICE",
+                "ESSAY",
+                "MATCHING",
+                "DETECTIVE",
+                "LEVEL"
             ],
             "x-enum-varnames": [
                 "Learning",
-                "MultipleChoice"
+                "MultipleChoice",
+                "Essay",
+                "Matching",
+                "Detective",
+                "Level"
             ]
+        },
+        "src_entity_v1_http_task.Level": {
+            "type": "object",
+            "properties": {
+                "qna": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/src_entity_v1_http_task.QnaLevel"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "src_entity_v1_http_task.LevelPayload": {
+            "type": "object",
+            "properties": {
+                "level_1": {
+                    "$ref": "#/definitions/src_entity_v1_http_task.Level"
+                },
+                "level_2": {
+                    "$ref": "#/definitions/src_entity_v1_http_task.Level"
+                }
+            }
         },
         "src_entity_v1_http_task.QnAPayload": {
             "type": "object",
@@ -510,11 +636,28 @@ const docTemplate = `{
                 }
             }
         },
+        "src_entity_v1_http_task.QnaLevel": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "question": {
+                    "type": "string"
+                }
+            }
+        },
         "task.GetResponse": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "string"
+                },
+                "levels": {
+                    "$ref": "#/definitions/src_entity_v1_http_task.LevelPayload"
+                },
+                "matches": {
+                    "$ref": "#/definitions/task.Matches"
                 },
                 "point": {
                     "type": "integer"
@@ -523,6 +666,12 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/src_entity_v1_http_task.QnAPayload"
+                    }
+                },
+                "sub_task": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 },
                 "text": {
@@ -536,16 +685,39 @@ const docTemplate = `{
                 }
             }
         },
+        "task.Matches": {
+            "type": "object",
+            "properties": {
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "questions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "task.SubmitRequest": {
             "type": "object",
             "properties": {
                 "answers": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 },
                 "id": {
+                    "type": "string"
+                },
+                "sub_task_id": {
                     "type": "string"
                 }
             }

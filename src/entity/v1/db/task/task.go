@@ -13,9 +13,27 @@ type Task struct {
 	Point         int               `firestore:"point"`
 	CategoryID    string            `firestore:"category_id"`
 	SubCategoryID string            `firestore:"sub_category_id"`
+	SubTasks      []string          `firestore:"sub_tasks"`
 
+	Level interface{} `firestore:"levels"`
 	Learning
-	MultipleChoice
+	QnA
+}
+
+type QnaLevel struct {
+	Answer      []string `json:"answer"`
+	Description string   `json:"description"`
+	Question    string   `json:"question"`
+}
+
+type Level struct {
+	QnA   []QnaLevel `json:"qna"`
+	Total int        `json:"total"`
+}
+
+type LevelPayload struct {
+	Level1 Level `json:"level_1"`
+	Level2 Level `json:"level_2"`
 }
 
 type Learning struct {
@@ -23,7 +41,7 @@ type Learning struct {
 	VideoURL string `firestore:"video_url"`
 }
 
-type MultipleChoice struct {
+type QnA struct {
 	QnAs []interface{} `firestore:"qna"`
 }
 
@@ -37,9 +55,17 @@ func (t Task) EncID() string {
 	return aes.EncryptID(t.ID)
 }
 
-func (mc MultipleChoice) Payload() []QnAPayload {
+func (mc QnA) Payload() []QnAPayload {
 	p := []QnAPayload{}
 	r, _ := json.Marshal(mc.QnAs)
+
+	json.Unmarshal(r, &p)
+	return p
+}
+
+func (t Task) LevelPayload() LevelPayload {
+	p := LevelPayload{}
+	r, _ := json.Marshal(t.Level)
 
 	json.Unmarshal(r, &p)
 	return p

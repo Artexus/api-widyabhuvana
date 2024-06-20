@@ -24,6 +24,10 @@ func (r Repository) subcategory() *firestore.CollectionRef {
 	return r.client.Collection("sub_categories")
 }
 
+func (r Repository) subcategorypoint() *firestore.CollectionRef {
+	return r.client.Collection("sub_category_points")
+}
+
 func (r Repository) Get(ctx context.Context, categoryID string) (entities []db.SubCategory, err error) {
 	entities = make([]db.SubCategory, 0)
 	snaps, err := r.subcategory().

@@ -14,6 +14,7 @@ type UserActivity struct {
 	LastTaskID        string `firestore:"last_task_id"`
 
 	Status               status `firestore:"status"`
+	SubCategoryPoint     int    `firestore:"sub_category_point"`
 	RemainingSubCategory int    `firestore:"remaining_sub_category"`
 	RemainingTask        int    `firestore:"remaining_task"`
 }

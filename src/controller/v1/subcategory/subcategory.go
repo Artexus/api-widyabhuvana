@@ -71,7 +71,7 @@ func (ctrl Controller) Get(ctx *gin.Context) {
 	}
 
 	responses := []httpSubCategory.GetResponse{}
-	for _, category := range categories {
+	for i, category := range categories {
 		if errors.Is(err, constant.ErrNotFound) {
 			entity.RemainingTask = len(category.Tasks)
 		}
@@ -80,8 +80,18 @@ func (ctrl Controller) Get(ctx *gin.Context) {
 			EncID:     aes.EncryptID(category.CategoryID),
 			Name:      category.Name,
 			MaxPoint:  category.MaxPoint,
-			Tasks:     aes.EncryptIDs(category.Tasks[len(category.Tasks)-entity.RemainingTask:]),
+			Tasks:     []string{},
 			TotalTask: len(category.Tasks),
+		}
+
+		if (i == 0 && errors.Is(err, constant.ErrNotFound)) ||
+			(category.ID == entity.LastSubCategoryID && entity.RemainingTask != 0) {
+			resp.Tasks = aes.EncryptIDs(category.Tasks[len(category.Tasks)-entity.RemainingTask:])
+		}
+
+		if entity.RemainingTask == 0 && entity.RemainingSubCategory != 0 &&
+			categories[len(categories)-entity.RemainingSubCategory].ID == category.ID {
+			resp.Tasks = aes.EncryptIDs(category.Tasks)
 		}
 
 		responses = append(responses, resp)

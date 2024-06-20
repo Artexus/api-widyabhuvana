@@ -13,6 +13,10 @@ type TaskType string
 const (
 	Learning       TaskType = "LEARNING"
 	MultipleChoice TaskType = "MULTIPLE_CHOICE"
+	Essay          TaskType = "ESSAY"
+	Matching       TaskType = "MATCHING"
+	Detective      TaskType = "DETECTIVE"
+	Level          TaskType = "LEVEL"
 )
 
 var (

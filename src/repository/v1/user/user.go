@@ -77,3 +77,9 @@ func (r Repository) UpdatePoint(ctx context.Context, id string, point int) (err 
 		Update(ctx, []firestore.Update{{Path: "total_point", Value: firestore.Increment(point)}})
 	return
 }
+
+func (r Repository) Update(ctx context.Context, id string, updates []firestore.Update) (err error) {
+	_, err = r.user().Doc(id).
+		Update(ctx, updates)
+	return
+}

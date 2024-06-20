@@ -7,9 +7,11 @@ type GetRequest struct {
 }
 
 type SubmitRequest struct {
-	UserID string `json:"-"`
-	ID     string `json:"-"`
+	UserID    string `json:"-"`
+	ID        string `json:"-"`
+	SubTaskID string `json:"-"`
 
-	EncID  string   `json:"id"`
-	Answer []string `json:"answers"`
+	EncID        string     `json:"id"`
+	Answer       [][]string `json:"answers"`
+	EncSubTaskID string     `json:"sub_task_id"`
 }

@@ -4,8 +4,10 @@ import (
 	"cloud.google.com/go/firestore"
 
 	"github.com/Artexus/api-widyabhuvana/src/middleware"
+	answerRepository "github.com/Artexus/api-widyabhuvana/src/repository/v1/answer"
 	categoryRepository "github.com/Artexus/api-widyabhuvana/src/repository/v1/category"
 	subCategoryRepository "github.com/Artexus/api-widyabhuvana/src/repository/v1/subcategory"
+	subTaskRepository "github.com/Artexus/api-widyabhuvana/src/repository/v1/subtask"
 	taskRepository "github.com/Artexus/api-widyabhuvana/src/repository/v1/task"
 	userRepository "github.com/Artexus/api-widyabhuvana/src/repository/v1/user"
 	userActivityRepository "github.com/Artexus/api-widyabhuvana/src/repository/v1/useractivity"
@@ -13,6 +15,7 @@ import (
 	"github.com/Artexus/api-widyabhuvana/src/controller/v1/auth"
 	"github.com/Artexus/api-widyabhuvana/src/controller/v1/category"
 	"github.com/Artexus/api-widyabhuvana/src/controller/v1/subcategory"
+	"github.com/Artexus/api-widyabhuvana/src/controller/v1/subtask"
 	"github.com/Artexus/api-widyabhuvana/src/controller/v1/task"
 	"github.com/Artexus/api-widyabhuvana/src/controller/v1/user"
 
@@ -31,6 +34,7 @@ func (r Route) routeAuth(v1 *gin.RouterGroup, handler *auth.Controller) {
 func (r Route) routeUser(v1 *gin.RouterGroup, handler *user.Controller) {
 	user := v1.Group("users", r.middleware.Auth)
 	user.GET("", handler.Get)
+	user.PATCH("", handler.Update)
 }
 
 func (r Route) routeCategory(v1 *gin.RouterGroup, handler *category.Controller) {
@@ -43,6 +47,11 @@ func (r Route) routeTask(v1 *gin.RouterGroup, handler *task.Controller) {
 	category := v1.Group("tasks", r.middleware.Auth)
 	category.GET("", handler.Get)
 	category.POST("", handler.Submit)
+}
+
+func (r Route) routeSubTask(v1 *gin.RouterGroup, handler *subtask.Controller) {
+	category := v1.Group("sub-tasks", r.middleware.Auth)
+	category.GET("", handler.Get)
 }
 
 func (r Route) routeSubCategory(v1 *gin.RouterGroup, handler *subcategory.Controller) {
@@ -61,13 +70,16 @@ func (r Route) InitRouter(router *gin.Engine, client *firestore.Client) {
 	categoryRepo := categoryRepository.NewRepository(client)
 	subCategoryRepo := subCategoryRepository.NewRepository(client)
 	taskRepo := taskRepository.NewRepository(client)
+	subTaskRepo := subTaskRepository.NewRepository(client)
 	userActivityRepo := userActivityRepository.NewRepository(client)
+	answerRepo := answerRepository.NewRepository(client)
 
 	authCtrl := auth.NewController(userRepo)
 	userCtrl := user.NewController(userRepo)
 	categoryCtrl := category.NewController(categoryRepo, userActivityRepo, subCategoryRepo)
 	subCategoryCtrl := subcategory.NewController(subCategoryRepo, userActivityRepo)
-	taskCtrl := task.NewController(taskRepo, userRepo, userActivityRepo, categoryRepo, subCategoryRepo)
+	taskCtrl := task.NewController(taskRepo, userRepo, answerRepo, subTaskRepo, userActivityRepo, categoryRepo, subCategoryRepo)
+	subTaskCtrl := subtask.NewController(subTaskRepo, userRepo)
 
 	v1 := router.Group("v1")
 	r.routeAuth(v1, authCtrl)
@@ -75,4 +87,5 @@ func (r Route) InitRouter(router *gin.Engine, client *firestore.Client) {
 	r.routeCategory(v1, categoryCtrl)
 	r.routeSubCategory(v1, subCategoryCtrl)
 	r.routeTask(v1, taskCtrl)
+	r.routeSubTask(v1, subTaskCtrl)
 }
