@@ -28,6 +28,8 @@ func main() {
 
 	r.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:    []string{"Origin", "Content-Length", "Content-Type", "Authorization"},
 	}))
 
 	initSwagger(r)
