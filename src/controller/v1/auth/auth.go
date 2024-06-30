@@ -36,7 +36,7 @@ func NewController(repo *user.Repository) *Controller {
 // @Failure 400 {string} string "Bad Request"
 // @Failure 404 {string} string "Not Found"
 // @Failure 500 {string} string "Internal Server Error"
-// @Success 201 {object} auth.LoginResponse
+// @Success 200 {object} auth.LoginResponse
 // @Router /v1/login [POST]
 func (ctrl Controller) Login(ctx *gin.Context) {
 	req := httpAuth.LoginRequest{}
@@ -86,7 +86,7 @@ func (ctrl Controller) Login(ctx *gin.Context) {
 		Token:    token,
 	}
 
-	ctx.JSON(http.StatusCreated, response)
+	ctx.JSON(http.StatusOK, response)
 }
 
 // Register godoc
