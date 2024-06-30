@@ -5,6 +5,7 @@ import (
 
 	"github.com/Artexus/api-widyabhuvana/docs"
 	"github.com/Artexus/api-widyabhuvana/src/route"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -24,6 +25,10 @@ func initSwagger(r *gin.Engine) {
 
 func main() {
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins: true,
+	}))
 
 	initSwagger(r)
 	route.InitRouter(r)
